@@ -174,7 +174,7 @@ forge --version
 ```bash
 # Clone repository
 git clone https://github.com/rocknwa/Token-Vesting.git
-cd vesting-contract
+cd Token-Vesting
 
 # Install dependencies
 forge install

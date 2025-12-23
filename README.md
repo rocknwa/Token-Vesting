@@ -173,7 +173,7 @@ forge --version
 
 ```bash
 # Clone repository
-git clone https://github.com/rocknwa/vesting-contract.git
+git clone https://github.com/rocknwa/Token-Vesting.git
 cd vesting-contract
 
 # Install dependencies

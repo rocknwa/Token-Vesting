@@ -1011,7 +1011,6 @@ contract TokenVestingTest is Test {
         vesting.revokeVesting(beneficiary1);
     }
 
- 
     /**
      * @dev Test vestedAmount for revoked schedule (covers missing branch)
      * This tests the scenario where schedule.revoked is true in vestedAmount()
@@ -1024,7 +1023,7 @@ contract TokenVestingTest is Test {
         vm.warp(startTime + CLIFF_DURATION);
         vm.prank(beneficiary1);
         vesting.release();
-        
+
         uint256 releasedAmount = token.balanceOf(beneficiary1);
 
         // Revoke the vesting
@@ -1032,7 +1031,7 @@ contract TokenVestingTest is Test {
 
         // After revocation, vested amount should equal released amount
         assertEq(vesting.vestedAmount(beneficiary1), releasedAmount);
-        
+
         // Move time forward - vested amount should not increase after revocation
         vm.warp(startTime + VESTING_DURATION);
         assertEq(vesting.vestedAmount(beneficiary1), releasedAmount);
@@ -1066,7 +1065,7 @@ contract TokenVestingTest is Test {
         for (uint256 i = 0; i < testPoints.length; i++) {
             vm.warp(testPoints[i]);
             uint256 vested = vesting.vestedAmount(beneficiary1);
-            
+
             if (testPoints[i] >= startTime + VESTING_DURATION) {
                 assertEq(vested, TOTAL_AMOUNT);
             } else if (testPoints[i] >= startTime + CLIFF_DURATION) {
@@ -1084,11 +1083,9 @@ contract TokenVestingTest is Test {
      */
     function test_DeployVesting_Direct() public {
         DeployTokenVesting tokenDeployer = new DeployTokenVesting();
-        
+
         DeployTokenVesting.DeploymentConfig memory config = DeployTokenVesting.DeploymentConfig({
-            tokenAddress: address(token),
-            owner: address(this),
-            createInitialSchedules: false
+            tokenAddress: address(token), owner: address(this), createInitialSchedules: false
         });
 
         TokenVesting deployed = tokenDeployer.deployVesting(config);
@@ -1100,11 +1097,9 @@ contract TokenVestingTest is Test {
      */
     function test_DeployVesting_RevertsOnZeroAddress() public {
         DeployTokenVesting tokenDeployer = new DeployTokenVesting();
-        
+
         DeployTokenVesting.DeploymentConfig memory config = DeployTokenVesting.DeploymentConfig({
-            tokenAddress: address(0),
-            owner: address(this),
-            createInitialSchedules: false
+            tokenAddress: address(0), owner: address(this), createInitialSchedules: false
         });
 
         vm.expectRevert("Invalid token address");
@@ -1116,24 +1111,24 @@ contract TokenVestingTest is Test {
      */
     function test_GetMainnetSchedules() public {
         DeployTokenVesting tokenDeployer = new DeployTokenVesting();
-        
+
         // Fork mainnet to test mainnet schedules
         vm.chainId(1);
-        
+
         DeployTokenVesting.VestingConfig[] memory schedules = tokenDeployer.getVestingSchedules();
-        
+
         // Should return 3 schedules for mainnet
         assertEq(schedules.length, 3);
-        
+
         // Verify schedule configurations
         assertEq(schedules[0].amount, 10_000_000 * 10 ** 18);
         assertEq(schedules[0].cliffDuration, 365 days);
         assertEq(schedules[0].vestingDuration, 4 * 365 days);
-        
+
         assertEq(schedules[1].amount, 5_000_000 * 10 ** 18);
         assertEq(schedules[1].cliffDuration, 182 days);
         assertEq(schedules[1].vestingDuration, 3 * 365 days);
-        
+
         assertEq(schedules[2].amount, 2_000_000 * 10 ** 18);
         assertEq(schedules[2].cliffDuration, 90 days);
         assertEq(schedules[2].vestingDuration, 2 * 365 days);
@@ -1144,20 +1139,20 @@ contract TokenVestingTest is Test {
      */
     function test_GetTestnetSchedules() public {
         DeployTokenVesting tokenDeployer = new DeployTokenVesting();
-        
+
         // Set chainId to Sepolia
         vm.chainId(11155111);
-        
+
         DeployTokenVesting.VestingConfig[] memory schedules = tokenDeployer.getVestingSchedules();
-        
+
         // Should return 2 schedules for testnet
         assertEq(schedules.length, 2);
-        
+
         // Verify testnet schedule configurations
         assertEq(schedules[0].amount, 1000 * 10 ** 18);
         assertEq(schedules[0].cliffDuration, 7 days);
         assertEq(schedules[0].vestingDuration, 30 days);
-        
+
         assertEq(schedules[1].amount, 500 * 10 ** 18);
         assertEq(schedules[1].cliffDuration, 3 days);
         assertEq(schedules[1].vestingDuration, 15 days);
@@ -1168,10 +1163,10 @@ contract TokenVestingTest is Test {
      */
     function test_GetVestingSchedules_Local() public {
         DeployTokenVesting tokenDeployer = new DeployTokenVesting();
-        
+
         // Default chainId (not mainnet or sepolia)
         DeployTokenVesting.VestingConfig[] memory schedules = tokenDeployer.getVestingSchedules();
-        
+
         // Should return empty array for local
         assertEq(schedules.length, 0);
     }
@@ -1181,16 +1176,16 @@ contract TokenVestingTest is Test {
      */
     function test_GetDeploymentConfig_AllVariables() public {
         DeployTokenVesting tokenDeployer = new DeployTokenVesting();
-        
+
         address testToken = makeAddr("testToken");
         address testOwner = makeAddr("testOwner");
-        
+
         vm.setEnv("TOKEN_ADDRESS", vm.toString(testToken));
         vm.setEnv("VESTING_OWNER", vm.toString(testOwner));
         vm.setEnv("CREATE_INITIAL_SCHEDULES", "true");
-        
+
         DeployTokenVesting.DeploymentConfig memory config = tokenDeployer.getDeploymentConfig();
-        
+
         assertEq(config.tokenAddress, testToken);
         assertEq(config.owner, testOwner);
         assertTrue(config.createInitialSchedules);
@@ -1201,14 +1196,14 @@ contract TokenVestingTest is Test {
      */
     function test_GetDeploymentConfig_Defaults() public {
         DeployTokenVesting tokenDeployer = new DeployTokenVesting();
-        
+
         // Clear environment variables
         vm.setEnv("TOKEN_ADDRESS", "");
         vm.setEnv("VESTING_OWNER", "");
         vm.setEnv("CREATE_INITIAL_SCHEDULES", "");
-        
+
         DeployTokenVesting.DeploymentConfig memory config = tokenDeployer.getDeploymentConfig();
-        
+
         assertEq(config.tokenAddress, address(0));
         assertFalse(config.createInitialSchedules);
     }
@@ -1218,45 +1213,42 @@ contract TokenVestingTest is Test {
      */
     function test_DeploymentOnDifferentChains() public {
         DeployTokenVesting tokenDeployer = new DeployTokenVesting();
-        
+
         // Test Mainnet
         vm.chainId(1);
         DeployTokenVesting.VestingConfig[] memory mainnetSchedules = tokenDeployer.getVestingSchedules();
         assertEq(mainnetSchedules.length, 3);
-        
+
         // Test Sepolia
         vm.chainId(11155111);
         DeployTokenVesting.VestingConfig[] memory sepoliaSchedules = tokenDeployer.getVestingSchedules();
         assertEq(sepoliaSchedules.length, 2);
-        
+
         // Test Arbitrum (random chain)
         vm.chainId(42161);
         DeployTokenVesting.VestingConfig[] memory arbitrumSchedules = tokenDeployer.getVestingSchedules();
         assertEq(arbitrumSchedules.length, 0);
-        
+
         // Test BSC
         vm.chainId(56);
         DeployTokenVesting.VestingConfig[] memory bscSchedules = tokenDeployer.getVestingSchedules();
         assertEq(bscSchedules.length, 0);
     }
 
-    
-     /**
+    /**
      * @dev Test deployment with owner transfer to different address
      */
     function test_DeploymentWithOwnerTransfer() public {
         DeployTokenVesting tokenDeployer = new DeployTokenVesting();
-        
+
         address newOwner = makeAddr("newOwner");
-        
+
         DeployTokenVesting.DeploymentConfig memory config = DeployTokenVesting.DeploymentConfig({
-            tokenAddress: address(token),
-            owner: newOwner,
-            createInitialSchedules: false
+            tokenAddress: address(token), owner: newOwner, createInitialSchedules: false
         });
 
         TokenVesting deployed = tokenDeployer.deployVesting(config);
-        
+
         // Owner should be transferred to newOwner
         assertEq(deployed.owner(), newOwner);
     }
@@ -1266,11 +1258,9 @@ contract TokenVestingTest is Test {
      */
     function test_DeploymentEvents() public {
         DeployTokenVesting tokenDeployer = new DeployTokenVesting();
-        
+
         DeployTokenVesting.DeploymentConfig memory config = DeployTokenVesting.DeploymentConfig({
-            tokenAddress: address(token),
-            owner: address(this),
-            createInitialSchedules: false
+            tokenAddress: address(token), owner: address(this), createInitialSchedules: false
         });
 
         // We can't easily test the exact event emission, but we can verify deployment succeeds
@@ -1283,32 +1273,20 @@ contract TokenVestingTest is Test {
      */
     function test_DeploymentWithSchedules_Testnet() public {
         vm.chainId(11155111); // Sepolia
-        
+
         // Create a deployment with manual schedule creation
         TokenVesting deployed = new TokenVesting(address(token));
-        
+
         // Manually create schedules to test the logic
         uint256 amount1 = 1000 * 10 ** 18;
         uint256 amount2 = 500 * 10 ** 18;
-        
+
         token.approve(address(deployed), amount1 + amount2);
-        
-        deployed.createVestingSchedule(
-            beneficiary1,
-            amount1,
-            uint64(block.timestamp),
-            7 days,
-            30 days
-        );
-        
-        deployed.createVestingSchedule(
-            beneficiary2,
-            amount2,
-            uint64(block.timestamp),
-            3 days,
-            15 days
-        );
-        
+
+        deployed.createVestingSchedule(beneficiary1, amount1, uint64(block.timestamp), 7 days, 30 days);
+
+        deployed.createVestingSchedule(beneficiary2, amount2, uint64(block.timestamp), 3 days, 15 days);
+
         assertEq(deployed.getBeneficiaryCount(), 2);
     }
 
@@ -1316,35 +1294,23 @@ contract TokenVestingTest is Test {
      * @dev Test createInitialSchedules logic with manual setup
      */
     function test_CreateInitialSchedules() public {
-       // DeployTokenVesting deployer = new DeployTokenVesting();
-        
+        // DeployTokenVesting deployer = new DeployTokenVesting();
+
         // Set up for testnet with valid beneficiaries
         vm.chainId(11155111);
-        
+
         // Create vesting contract
         TokenVesting deployed = new TokenVesting(address(token));
-        
+
         // Approve tokens
         uint256 totalAmount = 1500 * 10 ** 18;
         token.approve(address(deployed), totalAmount);
-        
+
         // Manually create schedules (simulating what createInitialSchedules would do)
-        deployed.createVestingSchedule(
-            beneficiary1,
-            1000 * 10 ** 18,
-            uint64(block.timestamp),
-            7 days,
-            30 days
-        );
-        
-        deployed.createVestingSchedule(
-            beneficiary2,
-            500 * 10 ** 18,
-            uint64(block.timestamp),
-            3 days,
-            15 days
-        );
-        
+        deployed.createVestingSchedule(beneficiary1, 1000 * 10 ** 18, uint64(block.timestamp), 7 days, 30 days);
+
+        deployed.createVestingSchedule(beneficiary2, 500 * 10 ** 18, uint64(block.timestamp), 3 days, 15 days);
+
         assertEq(deployed.getBeneficiaryCount(), 2);
         assertEq(deployed.totalVestingAmount(), totalAmount);
     }
@@ -1356,7 +1322,7 @@ contract TokenVestingTest is Test {
      */
     function test_VestingStartTimeExactMatch() public {
         uint64 startTime = uint64(block.timestamp);
-        
+
         vesting.createVestingSchedule(
             beneficiary1,
             TOTAL_AMOUNT,
@@ -1364,10 +1330,10 @@ contract TokenVestingTest is Test {
             0, // No cliff
             VESTING_DURATION
         );
-        
+
         // Warp to exactly start time + 1 second
         vm.warp(startTime + 1);
-        
+
         uint256 expectedVested = TOTAL_AMOUNT / VESTING_DURATION;
         assertEq(vesting.vestedAmount(beneficiary1), expectedVested);
     }
@@ -1377,45 +1343,39 @@ contract TokenVestingTest is Test {
      */
     function test_MultipleBeneficiariesRevocationFlow() public {
         uint64 startTime = uint64(block.timestamp);
-        
+
         // Create 5 schedules
         address[] memory beneficiaries = new address[](5);
         for (uint256 i = 0; i < 5; i++) {
             beneficiaries[i] = makeAddr(string(abi.encodePacked("beneficiary", i)));
-            vesting.createVestingSchedule(
-                beneficiaries[i],
-                TOTAL_AMOUNT,
-                startTime,
-                CLIFF_DURATION,
-                VESTING_DURATION
-            );
+            vesting.createVestingSchedule(beneficiaries[i], TOTAL_AMOUNT, startTime, CLIFF_DURATION, VESTING_DURATION);
         }
-        
+
         // Move past cliff
         vm.warp(startTime + CLIFF_DURATION + 180 days);
-        
+
         // Some beneficiaries release
         vm.prank(beneficiaries[0]);
         vesting.release();
         vm.prank(beneficiaries[2]);
         vesting.release();
-        
+
         // Revoke some schedules
         vesting.revokeVesting(beneficiaries[1]);
         vesting.revokeVesting(beneficiaries[3]);
-        
+
         // Verify states
         assertGt(token.balanceOf(beneficiaries[0]), 0);
         assertEq(token.balanceOf(beneficiaries[1]), 0);
         assertGt(token.balanceOf(beneficiaries[2]), 0);
         assertEq(token.balanceOf(beneficiaries[3]), 0);
         assertEq(token.balanceOf(beneficiaries[4]), 0);
-        
+
         // beneficiaries[4] can still release
         vm.prank(beneficiaries[4]);
         vesting.release();
         assertGt(token.balanceOf(beneficiaries[4]), 0);
-        
+
         // Revoked beneficiaries cannot release
         vm.prank(beneficiaries[1]);
         vm.expectRevert(TokenVesting.VestingAlreadyRevoked.selector);
@@ -1428,26 +1388,20 @@ contract TokenVestingTest is Test {
     function test_VeryLongVestingDuration() public {
         uint64 startTime = uint64(block.timestamp);
         uint64 longDuration = 50 * 365 days; // 50 years
-        
-        vesting.createVestingSchedule(
-            beneficiary1,
-            TOTAL_AMOUNT,
-            startTime,
-            365 days,
-            longDuration
-        );
-        
+
+        vesting.createVestingSchedule(beneficiary1, TOTAL_AMOUNT, startTime, 365 days, longDuration);
+
         // Test at 10 years
         vm.warp(startTime + 10 * 365 days);
         uint256 vested10y = vesting.vestedAmount(beneficiary1);
         uint256 expected10y = (TOTAL_AMOUNT * 10 * 365 days) / longDuration;
         assertEq(vested10y, expected10y);
-        
+
         // Test at 25 years (halfway)
         vm.warp(startTime + 25 * 365 days);
         uint256 vested25y = vesting.vestedAmount(beneficiary1);
         assertEq(vested25y, TOTAL_AMOUNT / 2);
-        
+
         // Test at 50 years (complete)
         vm.warp(startTime + longDuration);
         assertEq(vesting.vestedAmount(beneficiary1), TOTAL_AMOUNT);
@@ -1458,35 +1412,29 @@ contract TokenVestingTest is Test {
      */
     function test_ReleasableAfterRevocationComplex() public {
         uint64 startTime = uint64(block.timestamp);
-        vesting.createVestingSchedule(
-            beneficiary1,
-            TOTAL_AMOUNT,
-            startTime,
-            CLIFF_DURATION,
-            VESTING_DURATION
-        );
-        
+        vesting.createVestingSchedule(beneficiary1, TOTAL_AMOUNT, startTime, CLIFF_DURATION, VESTING_DURATION);
+
         // Move past cliff
         vm.warp(startTime + CLIFF_DURATION);
-        
+
         // Release first batch
         vm.prank(beneficiary1);
         vesting.release();
         uint256 firstRelease = token.balanceOf(beneficiary1);
-        
+
         // Move forward more
         vm.warp(startTime + CLIFF_DURATION + 180 days);
-        
+
         // Check releasable before revocation
         uint256 releasableBeforeRevoke = vesting.releasableAmount(beneficiary1);
         assertGt(releasableBeforeRevoke, 0);
-        
+
         // Revoke
         vesting.revokeVesting(beneficiary1);
-        
+
         // After revocation, releasable should be 0
         assertEq(vesting.releasableAmount(beneficiary1), 0);
-        
+
         // Vested amount should equal released amount
         assertEq(vesting.vestedAmount(beneficiary1), firstRelease);
     }

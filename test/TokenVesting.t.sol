@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import "forge-std/Test.sol";
 import "../src/TokenVesting.sol";
 import "../script/TokenVesting.s.sol";
+import "../script/DeployMockSetup.sol";
 
 contract TokenVestingTest is Test {
     TokenVesting public vesting;

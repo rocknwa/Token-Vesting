@@ -3,7 +3,6 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Script.sol";
 import "../src/TokenVesting.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /**
  * @title DeployTokenVesting
@@ -223,45 +222,5 @@ contract DeployTokenVesting is Script {
         }
 
         console.log("========================================");
-    }
-}
-
-/**
- * @title DeployMockSetup
- * @dev Deployment script that includes mock token for testing
- */
-contract DeployMockSetup is Script {
-    TokenVesting public vesting;
-    MockERC20 public token;
-
-    function run() external returns (address vestingAddress, address tokenAddress) {
-        vm.startBroadcast();
-
-        // Deploy mock token
-        token = new MockERC20();
-
-        // Deploy vesting
-        vesting = new TokenVesting(address(token));
-
-        vm.stopBroadcast();
-
-        console.log("Mock Token:", address(token));
-        console.log("Vesting Contract:", address(vesting));
-
-        return (address(vesting), address(token));
-    }
-}
-
-/**
- * @title MockERC20
- * @dev Simple mock ERC20 for testing
- */
-contract MockERC20 is ERC20 {
-    constructor() ERC20("Mock Token", "MOCK") {
-        _mint(msg.sender, 1_000_000_000 * 10 ** 18);
-    }
-
-    function mint(address to, uint256 amount) external {
-        _mint(to, amount);
     }
 }
